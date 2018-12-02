@@ -12,7 +12,7 @@ type tempIO struct {
 }
 
 func (tmpIO tempIO) json() (string, error) {
-	b, err := json.Marshal(tmpIO)
+	json, err := json.Marshal(tmpIO)
 
-	return string(b), err
+	return string(json), err
 }
