@@ -1,42 +1,39 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 )
 
 func main() {
 	port := "8080"
 
-	http.HandleFunc("/", tempIOHandler)
+	http.HandleFunc("/", tempIOSaveHandler)
+	http.HandleFunc("/now", tempIONowHandler)
 
 	http.ListenAndServe(":"+port, nil)
 }
 
-func tempIOHandler(w http.ResponseWriter, r *http.Request) {
+func tempIOSaveHandler(w http.ResponseWriter, r *http.Request) {
 	tmpIOJson, error := parseTempIORequest(r)
 
 	if error != nil {
 		panic(error)
 	}
 
-	fileHandle, error := os.OpenFile("tempIO.log", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
-	defer fileHandle.Close()
-
-	if error != nil {
-		panic(error)
-	}
-
-	logWriter := bufio.NewWriter(fileHandle)
-
-	fmt.Fprintln(logWriter, tmpIOJson)
-
-	logWriter.Flush()
+	save("salon", tmpIOJson)
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func tempIONowHandler(w http.ResponseWriter, r *http.Request) {
+	currentTime := time.Now()
+
+	value := read("salon", currentTime.Format("2006-01-02_15:04"))
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, value)
 }
 
 func parseTempIORequest(r *http.Request) (string, error) {
